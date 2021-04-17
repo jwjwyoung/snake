@@ -4,12 +4,15 @@
         "issues":
         [   
             {   
-                "reason": "Table User is deleted",
+                "reason": {
+                    "type": "column rename", 
+                    "detailed": "username to nickname"
+                },
                 "patch": "delete the query",
                 "position": 
                     {
-                    "start": {"line": 3, "column": 2},
-                    "end": {"line": 3, "column": 7}
+                    "start": {"line": 3, "column": 11},
+                    "end": {"line": 3, "column": 19}
                     }
             }
         ]
