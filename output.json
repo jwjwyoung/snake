@@ -1,6 +1,6 @@
 [
     {
-        "file": "app/controllers/application_controller.rb",
+        "file": "onebody/app/models/application_record.rb",
         "issues":
         [   
             {   
@@ -17,4 +17,5 @@
             }
         ]
     }
+
 ]
