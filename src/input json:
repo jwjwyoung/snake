@@ -1,0 +1,19 @@
+input json format:
+
+[
+    {
+        "file": "app/controllers/application_controller.rb",
+        "issues":
+        [   
+            {   
+                "reason": "Table User is deleted",
+                "patch": "delete the query",
+                "position": 
+                    {
+                    "start": {"line": 3, "column": 2},
+                    "end": {"line": 3, "column": 7},
+                    }
+            }
+        ]
+    }
+]
