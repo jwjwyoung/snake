@@ -46,10 +46,10 @@ export function registerHighlightProvider(ctx: ExtensionContext, documentSelecto
     let fs: any;
 	if (vscode.window && vscode.window.activeTextEditor) {
         console.log("active window and editor")
-        let folder = vscode.window.activeTextEditor.document.uri.fsPath;
-        console.log("folder " + folder)
+        let folder = vscode.workspace.rootPath;
+        console.log("folder " + vscode.workspace.rootPath)
         if(folder){
-            let fn = folder.split("/app/")[0] + "/output.json"
+            let fn = folder + "/output.json"
             console.log("fn " + fn)
             fs = require(fn)
         }
