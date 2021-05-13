@@ -3,10 +3,21 @@ import { DocumentSelector, ExtensionContext } from 'vscode';
 
 export function registerHighlightProvider(ctx: ExtensionContext, documentSelector: DocumentSelector) {
 	// highlight provider
-	ctx.subscriptions.push(vscode.languages.registerDocumentHighlightProvider(documentSelector, {
+    let fs: any;
+	if (vscode.window && vscode.window.activeTextEditor) {
+        console.log("active window and editor")
+        let folder = vscode.workspace.rootPath;
+        console.log("folder " + vscode.workspace.rootPath)
+        if(folder){
+            let fn = folder + "/output.json"
+            console.log("fn " + fn)
+            fs = require(fn)
+        }
+	}
+	let provider1 = vscode.languages.registerDocumentHighlightProvider(documentSelector, {
 		provideDocumentHighlights: (doc, pos) => {
             console.log("highlight");
-            let results:vscode.DocumentHighlight[] = []
+            let results: vscode.DocumentHighlight[] = []
             for(let i = 0 ; i < fs.length; i ++){
                 let f = fs[i]
                 if(doc.uri.toString().includes(f.file)){
@@ -20,9 +31,10 @@ export function registerHighlightProvider(ctx: ExtensionContext, documentSelecto
             console.log("results: " + results.length);
         return results;
 		}
-	}));
-
-    ctx.subscriptions.push(vscode.languages.registerHoverProvider('*', {
+	});
+    ctx.subscriptions.push(provider1);
+    
+    let provider2 = vscode.languages.registerHoverProvider('*', {
         provideHover(doc, position, token) {
             for(let i = 0 ; i < fs.length; i ++){
                 let f = fs[i]
@@ -41,18 +53,8 @@ export function registerHighlightProvider(ctx: ExtensionContext, documentSelecto
             }
         }
       })
-      );
+    ctx.subscriptions.push(provider2);
+    
 
-    let pairs: vscode.Range[] = []
-    let fs: any;
-	if (vscode.window && vscode.window.activeTextEditor) {
-        console.log("active window and editor")
-        let folder = vscode.workspace.rootPath;
-        console.log("folder " + vscode.workspace.rootPath)
-        if(folder){
-            let fn = folder + "/output.json"
-            console.log("fn " + fn)
-            fs = require(fn)
-        }
-	}
+    return [provider1, provider2]
 }

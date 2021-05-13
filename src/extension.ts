@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -18,33 +19,41 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "snake" is now active!');
+	let provider = registerHighlightProvider(context, DOCUMENT_SELECTOR);
+	
 
-	registerHighlightProvider(context, DOCUMENT_SELECTOR);
 	if(vscode.workspace.rootPath){
 		const rootPath: string = vscode.workspace.rootPath
+		const treeprovider = new NodeDependenciesProvider(vscode.workspace.rootPath)
 		const tree = vscode.window.createTreeView('nodeDependencies', {
-			treeDataProvider: new NodeDependenciesProvider(vscode.workspace.rootPath)
+			treeDataProvider: treeprovider
 		  });
 		tree.onDidChangeSelection( e =>{
 			for(let i = 0; i < e.selection.length; i ++){
 				let file = e.selection[i].label
 				let filepath = path.join(rootPath, file)
 				console.log("filepath " + filepath)
-				vscode.workspace.openTextDocument(filepath).then(iDoc => {
-					vscode.window.showTextDocument(iDoc)
-				})
+				if (fs.existsSync(filepath)){
+					vscode.workspace.openTextDocument(filepath).then(iDoc => {
+						vscode.window.showTextDocument(iDoc)
+					})
+				}
 			}
 		});
 
+		vscode.commands.registerCommand('nodeDependencies.refreshEntry', () => {
+			treeprovider.refresh();
+			provider[0].dispose();
+			provider[1].dispose();
+			provider = registerHighlightProvider(context, DOCUMENT_SELECTOR)
+		}
 		
+	  );
 	}
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('snake.detectinconsistency', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
 		vscode.window.showInformationMessage('Detecting inconsistency');
 	});
 	
