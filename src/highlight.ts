@@ -1,19 +1,19 @@
 import * as vscode from 'vscode';
 import { DocumentSelector, ExtensionContext } from 'vscode';
 
-export function registerHighlightProvider(ctx: ExtensionContext, documentSelector: DocumentSelector) {
+export function registerHighlightProvider(ctx: ExtensionContext, documentSelector: DocumentSelector, fs: any) {
 	// highlight provider
-    let fs: any;
-	if (vscode.window && vscode.window.activeTextEditor) {
-        console.log("active window and editor");
-        let folder = vscode.workspace.rootPath;
-        console.log("folder " + vscode.workspace.rootPath);
-        if(folder){
-            let fn = folder + "/output.json";
-            console.log("fn " + fn);
-            fs = require(fn);
-        }
-	}
+    // let fs: any;
+	// if (vscode.window && vscode.window.activeTextEditor) {
+    //     console.log("active window and editor");
+    //     let folder = vscode.workspace.rootPath;
+    //     console.log("folder " + vscode.workspace.rootPath);
+    //     if(folder){
+    //         let fn = folder + "/output.json";
+    //         console.log("fn " + fn);
+    //         fs = require(fn);
+    //     }
+	// }
 	let provider1 = vscode.languages.registerDocumentHighlightProvider(documentSelector, {
 		provideDocumentHighlights: (doc, pos) => {
             console.log("highlight");

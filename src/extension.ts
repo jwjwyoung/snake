@@ -19,8 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "snake" is now active!');
-	let provider = registerHighlightProvider(context, DOCUMENT_SELECTOR);
-	
+	let provider: any;
 
 	if(vscode.workspace.rootPath){
 		const rootPath: string = vscode.workspace.rootPath;
@@ -29,6 +28,11 @@ export function activate(context: vscode.ExtensionContext) {
 			treeDataProvider: treeprovider
 		  });
 		tree.onDidChangeSelection( e =>{
+			if (provider){
+				provider[0].dispose();
+				provider[1].dispose();
+			}
+			provider = registerHighlightProvider(context, DOCUMENT_SELECTOR, treeprovider.files);
 			for(let i = 0; i < e.selection.length; i ++){
 				let file = e.selection[i].label;
 				let filepath = path.join(rootPath, file);
@@ -60,9 +64,9 @@ export function activate(context: vscode.ExtensionContext) {
         // refresh
 		vscode.commands.registerCommand('nodeDependencies.refreshEntry', () => {
 			treeprovider.refresh();
-			// provider[0].dispose();
-			// provider[1].dispose();
-			// provider = registerHighlightProvider(context, DOCUMENT_SELECTOR);
+			provider[0].dispose();
+			provider[1].dispose();
+			provider = registerHighlightProvider(context, DOCUMENT_SELECTOR, treeprovider.files);
 		}
 		
 	  );
