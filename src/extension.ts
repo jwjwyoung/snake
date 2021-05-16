@@ -7,7 +7,7 @@ import * as fs from 'fs';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 import { registerHighlightProvider } from './highlight';
-import {NodeDependenciesProvider} from "./treeprovider"
+import {NodeDependenciesProvider} from "./treeprovider";
 const DOCUMENT_SELECTOR: { language: string; scheme: string }[] = [
 	{ language: 'ruby', scheme: 'file' },
 	{ language: 'ruby', scheme: 'untitled' },
@@ -23,29 +23,46 @@ export function activate(context: vscode.ExtensionContext) {
 	
 
 	if(vscode.workspace.rootPath){
-		const rootPath: string = vscode.workspace.rootPath
-		const treeprovider = new NodeDependenciesProvider(vscode.workspace.rootPath)
+		const rootPath: string = vscode.workspace.rootPath;
+		const treeprovider = new NodeDependenciesProvider(vscode.workspace.rootPath);
 		const tree = vscode.window.createTreeView('nodeDependencies', {
 			treeDataProvider: treeprovider
 		  });
 		tree.onDidChangeSelection( e =>{
 			for(let i = 0; i < e.selection.length; i ++){
-				let file = e.selection[i].label
-				let filepath = path.join(rootPath, file)
-				console.log("filepath " + filepath)
+				let file = e.selection[i].label;
+				let filepath = path.join(rootPath, file);
+				let f = treeprovider.files[e.selection[i].file];
+				let version = e.selection[i].version;
+				console.log("filepath " + filepath);
+				// filename 
 				if (fs.existsSync(filepath)){
+					// open the file
 					vscode.workspace.openTextDocument(filepath).then(iDoc => {
-						vscode.window.showTextDocument(iDoc)
-					})
+						vscode.window.showTextDocument(iDoc);
+					});
+				}
+				else if (file.startsWith("Issue:")){
+					// issue
+					filepath = path.join(rootPath, f.file);
+					let issue = f.issues[Number(version)];
+					// open the file at corresponding line 
+					vscode.workspace.openTextDocument(filepath).then(iDoc => {
+						vscode.window.showTextDocument(iDoc).then(editor => {
+							let p = new vscode.Range(issue.position.start.line, issue.position.start.column, issue.position.end.line, issue.position.end.column);
+							// locate the line
+							editor.revealRange(p);
+						});
+					});
 				}
 			}
 		});
-
+        // refresh
 		vscode.commands.registerCommand('nodeDependencies.refreshEntry', () => {
 			treeprovider.refresh();
-			provider[0].dispose();
-			provider[1].dispose();
-			provider = registerHighlightProvider(context, DOCUMENT_SELECTOR)
+			// provider[0].dispose();
+			// provider[1].dispose();
+			// provider = registerHighlightProvider(context, DOCUMENT_SELECTOR);
 		}
 		
 	  );

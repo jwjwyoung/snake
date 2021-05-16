@@ -4,6 +4,7 @@ import * as path from 'path';
 import { type } from 'node:os';
 
 export class NodeDependenciesProvider implements vscode.TreeDataProvider<Dependency> {
+  public files: any;
   constructor(private workspaceRoot: string) {}
 
   getTreeItem(element: Dependency): vscode.TreeItem {
@@ -17,18 +18,28 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
     }
 
     if (element) {
-      let types = []
-      console.log("issues "  + element.file.issues)
-      for(let i = 0; i < element.file.issues.length; i ++){
-        let issue = element.file.issues[i]
-        
+      let types = [];
+      if (this.pathExists(path.join(this.workspaceRoot, element.label))){
+        console.log("issues "  + element.file.issues);
+        let file = this.files[element.file];
+        for(let i = 0; i < file.issues.length; i ++){
+          let issue = file.issues[i];
+          let dep = new Dependency(
+            "Issue: " +  issue.reason.type + " at line " + (issue.position.start.line + 1),
+            i + "",
+            vscode.TreeItemCollapsibleState.Collapsed,
+            element.file,
+          );
+          types.push(dep);
+        }
+      }else{
         let dep = new Dependency(
-          issue.reason.type + " at line " + issue.position.start.line,
-          issue.position.start.line,
+          "Fix",
+          '',
           vscode.TreeItemCollapsibleState.None,
           element.file,
         );
-        types.push(dep)
+        types.push(dep);
       }
       return Promise.resolve(types);
     } else {
@@ -48,9 +59,9 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
   private getDepsInPackageJson(packageJsonPath: string): Dependency[] {
     if (this.pathExists(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-
+      this.files = packageJson;
       const toDep = (moduleName: string, version: string, file: any): Dependency => {
-        console.log("path " + path.join(this.workspaceRoot, moduleName))
+        console.log("path " + path.join(this.workspaceRoot, moduleName));
         if (this.pathExists(path.join(this.workspaceRoot, moduleName))) {
           return new Dependency(
             moduleName,
@@ -63,17 +74,17 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
         }
       };
 
-      let deps:any = []
+      let deps:any = [];
       for(let i = 0 ; i < packageJson.length; i ++){
-        let f = packageJson[i]
-        let issue_len = f.issues.length 
-        let suffix = " error"
-        if (issue_len > 1){
-          suffix = " errors"
+        let f = packageJson[i];
+        let issueLen = f.issues.length; 
+        let suffix = " error";
+        if (issueLen > 1){
+          suffix = " errors";
         }
-        let tooltip: string = issue_len + suffix
-        let dep = toDep(f.file, tooltip, f)
-        deps.push(dep)
+        let tooltip: string = issueLen + suffix;
+        let dep = toDep(f.file, tooltip, i);
+        deps.push(dep);
       }
 
       return deps;
@@ -102,7 +113,7 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
 class Dependency extends vscode.TreeItem {
   constructor(
     public readonly label: string,
-    private version: string,
+    public version: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public file : any
   ) {

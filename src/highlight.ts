@@ -5,26 +5,26 @@ export function registerHighlightProvider(ctx: ExtensionContext, documentSelecto
 	// highlight provider
     let fs: any;
 	if (vscode.window && vscode.window.activeTextEditor) {
-        console.log("active window and editor")
+        console.log("active window and editor");
         let folder = vscode.workspace.rootPath;
-        console.log("folder " + vscode.workspace.rootPath)
+        console.log("folder " + vscode.workspace.rootPath);
         if(folder){
-            let fn = folder + "/output.json"
-            console.log("fn " + fn)
-            fs = require(fn)
+            let fn = folder + "/output.json";
+            console.log("fn " + fn);
+            fs = require(fn);
         }
 	}
 	let provider1 = vscode.languages.registerDocumentHighlightProvider(documentSelector, {
 		provideDocumentHighlights: (doc, pos) => {
             console.log("highlight");
-            let results: vscode.DocumentHighlight[] = []
+            let results: vscode.DocumentHighlight[] = [];
             for(let i = 0 ; i < fs.length; i ++){
-                let f = fs[i]
+                let f = fs[i];
                 if(doc.uri.toString().includes(f.file)){
                     for(let j = 0; j < f.issues.length; j ++){
-                        let p = new vscode.Range(f.issues[j].position.start.line, f.issues[j].position.start.column, f.issues[j].position.end.line, f.issues[j].position.end.column)
-                        let docHigh = new vscode.DocumentHighlight(p, vscode.DocumentHighlightKind.Read)
-                        results.push(docHigh)
+                        let p = new vscode.Range(f.issues[j].position.start.line, f.issues[j].position.start.column, f.issues[j].position.end.line, f.issues[j].position.end.column);
+                        let docHigh = new vscode.DocumentHighlight(p, vscode.DocumentHighlightKind.Read);
+                        results.push(docHigh);
                     }
                 }
             }
@@ -37,24 +37,24 @@ export function registerHighlightProvider(ctx: ExtensionContext, documentSelecto
     let provider2 = vscode.languages.registerHoverProvider('*', {
         provideHover(doc, position, token) {
             for(let i = 0 ; i < fs.length; i ++){
-                let f = fs[i]
+                let f = fs[i];
                 for(let j = 0; j < f.issues.length; j ++){
-                    console.log(f.issues[j].position.start.line, f.issues[j].position.start.column, f.issues[j].position.end.line, f.issues[j].position.end.column)
-                    let p = new vscode.Range(f.issues[j].position.start.line, f.issues[j].position.start.column, f.issues[j].position.end.line, f.issues[j].position.end.column)
+                    console.log(f.issues[j].position.start.line, f.issues[j].position.start.column, f.issues[j].position.end.line, f.issues[j].position.end.column);
+                    let p = new vscode.Range(f.issues[j].position.start.line, f.issues[j].position.start.column, f.issues[j].position.end.line, f.issues[j].position.end.column);
                     if(doc.uri.toString().includes(f.file)){
-                        if ((position.line == p.start.line && position.character >= p.start.character) || position.line > p.start.line )
-                            if ((position.line == p.end.line && position.character <= p.end.character) || position.line < p.end.line ){
+                        if ((position.line === p.start.line && position.character >= p.start.character) || position.line > p.start.line )
+                            {if ((position.line === p.end.line && position.character <= p.end.character) || position.line < p.end.line ){
                                 return {
                                     contents: [f.issues[j].reason.detailed]
                                 };
-                            }
+                            }}
                         }
                     }
             }
         }
-      })
+      });
     ctx.subscriptions.push(provider2);
     
 
-    return [provider1, provider2]
+    return [provider1, provider2];
 }
