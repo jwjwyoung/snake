@@ -1,8 +1,9 @@
 {
-	"name": "snake",
-	"displayName": "Snake",
+	"name": "evolutionsaver",
+	"displayName": "EvolutionSaver",
 	"description": "code refactoring based on schema change",
 	"version": "0.0.1",
+	"publisher": "evolutionsaver",
 	"engines": {
 		"vscode": "^1.55.0"
 	},

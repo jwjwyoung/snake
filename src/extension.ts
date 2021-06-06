@@ -8,8 +8,10 @@ import * as fs from 'fs';
 // your extension is activated the very first time the command is executed
 import { registerHighlightProvider } from './highlight';
 import {NodeDependenciesProvider} from "./treeprovider";
+import {Execution} from "./exec";
 const DOCUMENT_SELECTOR: { language: string; scheme: string }[] = [
-	{ language: 'ruby', scheme: 'file' },
+	{ language: '*', scheme: 'file' },
+	{ language: 'erb', scheme: 'file' },
 	{ language: 'ruby', scheme: 'untitled' },
 	{ language: 'python', scheme: 'file' },
 ];
@@ -23,21 +25,26 @@ export function activate(context: vscode.ExtensionContext) {
 
 	if(vscode.workspace.rootPath){
 		const rootPath: string = vscode.workspace.rootPath;
+		const execute = new Execution(rootPath);
+		execute.execute();
 		const treeprovider = new NodeDependenciesProvider(vscode.workspace.rootPath);
 		const tree = vscode.window.createTreeView('nodeDependencies', {
 			treeDataProvider: treeprovider
 		  });
+		let cmd = "";
 		tree.onDidChangeSelection( e =>{
 			if (provider){
 				provider[0].dispose();
 				provider[1].dispose();
 			}
-			provider = registerHighlightProvider(context, DOCUMENT_SELECTOR, treeprovider.files);
+			provider = registerHighlightProvider(context, treeprovider.files);
 			for(let i = 0; i < e.selection.length; i ++){
+				let selection = e.selection[i];
 				let file = e.selection[i].label;
 				let filepath = path.join(rootPath, file);
 				let f = treeprovider.files[e.selection[i].file];
 				let version = e.selection[i].version;
+				let index = e.selection[i].index
 				console.log("filepath " + filepath);
 				// filename 
 				if (fs.existsSync(filepath)){
@@ -49,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
 				else if (file.startsWith("Issue:")){
 					// issue
 					filepath = path.join(rootPath, f.file);
-					let issue = f.issues[Number(version)];
+					let issue = f.issues[index];
 					// open the file at corresponding line 
 					vscode.workspace.openTextDocument(filepath).then(iDoc => {
 						vscode.window.showTextDocument(iDoc).then(editor => {
@@ -58,6 +65,21 @@ export function activate(context: vscode.ExtensionContext) {
 							editor.revealRange(p);
 						});
 					});
+				}else if (file === "Fix"){
+					if (selection.isFixed === false){
+						let issue = f.issues[index];
+						filepath = path.join(rootPath, f.file);
+						vscode.workspace.openTextDocument(filepath).then(iDoc => {
+							vscode.window.showTextDocument(iDoc).then(editor => {
+								let p = new vscode.Range(issue.position.start.line, issue.position.start.column, issue.position.end.line, issue.position.end.column);
+								// locate the line
+								let workspaceEdit = new vscode.WorkspaceEdit();
+								workspaceEdit.replace(iDoc.uri, p, issue.patch);
+								vscode.workspace.applyEdit(workspaceEdit);
+							});
+						});
+						selection.isFixed = true;
+					}
 				}
 			}
 		});
@@ -66,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 			treeprovider.refresh();
 			provider[0].dispose();
 			provider[1].dispose();
-			provider = registerHighlightProvider(context, DOCUMENT_SELECTOR, treeprovider.files);
+			provider = registerHighlightProvider(context, treeprovider.files);
 		}
 		
 	  );

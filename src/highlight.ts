@@ -1,21 +1,12 @@
 import * as vscode from 'vscode';
-import { DocumentSelector, ExtensionContext } from 'vscode';
+import { ExtensionContext } from 'vscode';
 
-export function registerHighlightProvider(ctx: ExtensionContext, documentSelector: DocumentSelector, fs: any) {
-	// highlight provider
-    // let fs: any;
-	// if (vscode.window && vscode.window.activeTextEditor) {
-    //     console.log("active window and editor");
-    //     let folder = vscode.workspace.rootPath;
-    //     console.log("folder " + vscode.workspace.rootPath);
-    //     if(folder){
-    //         let fn = folder + "/output.json";
-    //         console.log("fn " + fn);
-    //         fs = require(fn);
-    //     }
-	// }
-	let provider1 = vscode.languages.registerDocumentHighlightProvider(documentSelector, {
-		provideDocumentHighlights: (doc, pos) => {
+export function registerHighlightProvider(ctx: ExtensionContext,  fs: any) {
+    const DOCUMENT_SELECTOR: { language: string; scheme: string }[] = [
+        { language: '*', scheme: '*' },
+    ];
+	let provider1 = vscode.languages.registerDocumentHighlightProvider(DOCUMENT_SELECTOR, {
+        provideDocumentHighlights: (doc, pos) => {
             console.log("highlight");
             let results: vscode.DocumentHighlight[] = [];
             for(let i = 0 ; i < fs.length; i ++){
@@ -29,7 +20,7 @@ export function registerHighlightProvider(ctx: ExtensionContext, documentSelecto
                 }
             }
             console.log("results: " + results.length);
-        return results;
+            return results;
 		}
 	});
     ctx.subscriptions.push(provider1);
