@@ -24,22 +24,14 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
         let file = this.files[element.file];
         for(let i = 0; i < file.issues.length; i ++){
           let issue = file.issues[i];
-          let real_reason = issue.reason.type 
-          // if (issue.reason.type == "column delete"){
-          //   real_reason = "column is deleted"
-          // }          
-          // if (issue.reason.type == "column rename"){
-          //   real_reason = "column is renamed"
-          // }
-          // if (issue.reason.type == "association type change"){
-          //   real_reason = "association type is changed"
-          // }
-          console.log("types" + types)
+          let realReason = issue.reason.type; 
+          console.log("types" + types);
           let dep = new Dependency(
-            "Line " + (issue.position.start.line + 1) + " due to " + real_reason,
+            "Line " + (issue.position.start.line + 1) + " due to " + realReason,
             "",
             vscode.TreeItemCollapsibleState.Collapsed,
             element.file,
+            i
           );
           types.push(dep);
         }
@@ -49,6 +41,7 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
           '',
           vscode.TreeItemCollapsibleState.None,
           element.file,
+          element.index
         );
         types.push(dep);
       }
@@ -79,9 +72,10 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
             version,
             vscode.TreeItemCollapsibleState.Collapsed,
             file,
+            0
           );
         } else {
-          return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.None, file);
+          return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.None, file, 0);
         }
       };
 
@@ -122,16 +116,20 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
 }
 
 class Dependency extends vscode.TreeItem {
+  public isFixed: boolean;
   constructor(
-    public readonly label: string,
+    public label: string,
     public version: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public file : any
+    public file : any,
+    public index: number
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.version}`;
     this.description = this.version;
     this.file = file;
+    this.index = index;
+    this.isFixed = false;
   }
 
   iconPath = {
