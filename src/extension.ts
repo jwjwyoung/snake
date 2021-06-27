@@ -22,22 +22,32 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('snake.detectinconsistency', () => {
-		vscode.window.showInformationMessage('Detecting inconsistency');
-			// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "snake" is now active!');
 	let provider: any;
 
 	if(vscode.workspace.rootPath){
 		const rootPath: string = vscode.workspace.rootPath;
+
+		const packageJsonPath = path.join(vscode.workspace.rootPath, 'output.json');
 		const execute = new Execution(rootPath);
 		execute.execute();
+		while(true){
+			if (fs.existsSync(packageJsonPath)) {
+				console.log("Log file is created");
+				try {
+					JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+					break;
+				} catch (error) {
+					console.log("file is not ready for reading");
+				}
+			}
+		}
 		const treeprovider = new NodeDependenciesProvider(vscode.workspace.rootPath);
+
 		const tree = vscode.window.createTreeView('nodeDependencies', {
 			treeDataProvider: treeprovider
 		  });
-		let cmd = "";
+		// remove the file
+		// fs.unlinkSync(packageJsonPath);
 		tree.onDidChangeSelection( e =>{
 			if (provider){
 				provider[0].dispose();
@@ -111,6 +121,12 @@ export function activate(context: vscode.ExtensionContext) {
 		
 	  );
 	}
+	let disposable = vscode.commands.registerCommand('snake.detectinconsistency', () => {
+		vscode.window.showInformationMessage('Detecting inconsistency');
+			// Use the console to output diagnostic information (console.log) and errors (console.error)
+	// This line of code will only be executed once when your extension is activated
+	console.log('Congratulations, your extension "snake" is now active!');
+
 	});
 	
 	context.subscriptions.push(disposable);
