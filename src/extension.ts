@@ -18,7 +18,13 @@ const DOCUMENT_SELECTOR: { language: string; scheme: string }[] = [
 
 export function activate(context: vscode.ExtensionContext) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
+
+	// The command has been defined in the package.json file
+	// Now provide the implementation of the command with registerCommand
+	// The commandId parameter must match the command field in package.json
+	let disposable = vscode.commands.registerCommand('snake.detectinconsistency', () => {
+		vscode.window.showInformationMessage('Detecting inconsistency');
+			// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "snake" is now active!');
 	let provider: any;
@@ -72,10 +78,22 @@ export function activate(context: vscode.ExtensionContext) {
 						vscode.workspace.openTextDocument(filepath).then(iDoc => {
 							vscode.window.showTextDocument(iDoc).then(editor => {
 								let p = new vscode.Range(issue.position.start.line, issue.position.start.column, issue.position.end.line, issue.position.end.column);
+								console.log("issue.reason " + issue.reason);
 								// locate the line
 								let workspaceEdit = new vscode.WorkspaceEdit();
-								workspaceEdit.replace(iDoc.uri, p, issue.patch);
-								vscode.workspace.applyEdit(workspaceEdit);
+								let reason = issue.reason.type;
+								if (reason === "column rename" || reason === "table rename"  || reason === "association rename"){
+									workspaceEdit.replace(iDoc.uri, p, issue.patch);
+									vscode.workspace.applyEdit(workspaceEdit);
+								}
+								if (reason === "column delete"){
+									console.log("column delete");
+									let firstLine = iDoc.lineAt(issue.position.start.line);
+									console.log(firstLine.range.start, firstLine.range.end);
+									let p = new vscode.Range(firstLine.range.start, firstLine.range.end);
+									workspaceEdit.replace(iDoc.uri, p, '');
+									vscode.workspace.applyEdit(workspaceEdit);
+								}
 							});
 						});
 						selection.isFixed = true;
@@ -93,11 +111,6 @@ export function activate(context: vscode.ExtensionContext) {
 		
 	  );
 	}
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('snake.detectinconsistency', () => {
-		vscode.window.showInformationMessage('Detecting inconsistency');
 	});
 	
 	context.subscriptions.push(disposable);

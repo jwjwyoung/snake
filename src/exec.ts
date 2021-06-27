@@ -15,10 +15,10 @@ export class Execution{
         this.appType = configJson.app;
         this.previousCommit = configJson.previous_commit;
         this.currentCommit = configJson.current_commit;
+        let scriptPath = configJson.script_path;
         if (this.appType === "rails"){
-            let scriptDir: string = path.join(root, '/../evolution_helper/formatchecker/constraint_analyzer'); 
             let scriptName: string = "execute.rb";
-            this.cmd = "cd " + scriptDir + " && ruby "  + scriptName + " " + root + " " + this.currentCommit + " " + this.previousCommit;
+            this.cmd = "cd " + scriptPath + " && ruby "  + scriptName + " " + root + " " + this.currentCommit + " " + this.previousCommit;
             console.log("CMD IS " + this.cmd);
         }else{
             this.cmd = "python " + this.previousCommit + " " + this.currentCommit;

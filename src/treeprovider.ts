@@ -25,9 +25,20 @@ export class NodeDependenciesProvider implements vscode.TreeDataProvider<Depende
         let file = this.files[element.file];
         for(let i = 0; i < file.issues.length; i ++){
           let issue = file.issues[i];
+          let real_reason = issue.reason.type 
+          // if (issue.reason.type == "column delete"){
+          //   real_reason = "column is deleted"
+          // }          
+          // if (issue.reason.type == "column rename"){
+          //   real_reason = "column is renamed"
+          // }
+          // if (issue.reason.type == "association type change"){
+          //   real_reason = "association type is changed"
+          // }
+          console.log("types" + types)
           let dep = new Dependency(
-            "Issue: " +  issue.reason.type + " at line " + (issue.position.start.line + 1),
-            i + "",
+            "Line " + (issue.position.start.line + 1) + " due to " + real_reason,
+            "",
             vscode.TreeItemCollapsibleState.Collapsed,
             element.file,
             i,
