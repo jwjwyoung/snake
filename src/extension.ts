@@ -89,12 +89,26 @@ export function activate(context: vscode.ExtensionContext) {
 							vscode.window.showTextDocument(iDoc).then(editor => {
 								let p = new vscode.Range(issue.position.start.line, issue.position.start.column, issue.position.end.line, issue.position.end.column);
 								console.log("issue.reason " + issue.reason);
+								console.log("issue location " + issue.position.start.column + " " + issue.position.end.column);
 								// locate the line
 								let workspaceEdit = new vscode.WorkspaceEdit();
 								let reason = issue.reason.type;
 								if (reason === "column rename" || reason === "table rename"  || reason === "association rename"){
 									workspaceEdit.replace(iDoc.uri, p, issue.patch);
 									vscode.workspace.applyEdit(workspaceEdit);
+									console.log("applied edit");
+									for(let j = 0; j  < f.issues.length; j ++){
+										let issueJ = f.issues[j];
+										// in the same line and after the change
+										if(issueJ.position.start.line === issue.position.start.line && issueJ.position.start.column > issue.position.start.column){
+											let delta = issue.patch.length - (issue.position.end.column - issue.position.start.column);
+											console.log("changed issue length " + delta);
+											console.log("before " + issueJ.position.start.column + " " + issueJ.position.end.column);
+											issueJ.position.start.column = issueJ.position.start.column + delta;
+											issueJ.position.end.column = issueJ.position.end.column + delta;
+											console.log("after " + issueJ.position.start.column + " " + issueJ.position.end.column);
+										}
+									}
 								}
 								if (reason === "column delete"){
 									console.log("column delete");
